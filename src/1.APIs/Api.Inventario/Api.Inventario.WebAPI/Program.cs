@@ -1,6 +1,8 @@
 using Api.Inventario.Domain.Interfaces;
 using Api.Inventario.Infrastructure.Data;
 using Api.Inventario.Infrastructure.Repositories;
+using Api.Inventario.Application.Interfaces; // <-- Asegurate de tener este using
+using Api.Inventario.Application.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,7 +13,9 @@ builder.Services.AddDbContext<InventarioDbContext>(options =>
 
 // 2. Inyectar el Unit of Work (Scoped = una instancia por cada petición HTTP)
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
+builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
+builder.Services.AddScoped<IProductoService, ProductoService>();
+builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
