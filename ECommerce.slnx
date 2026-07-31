@@ -9,4 +9,8 @@
     <Project Path="src/Services/Api.Inventario/Api.Inventario.Infrastructure/Api.Inventario.Infrastructure.csproj" />
     <Project Path="src/Services/Api.Inventario/Api.Inventario.WebAPI/Api.Inventario.WebAPI.csproj" />
   </Folder>
+
+  <Folder Name="/Shared/">
+    <Project Path="src/Shared/SharedContracts/SharedContracts.csproj" />
+  </Folder>
 </Solution>
