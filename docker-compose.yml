@@ -12,6 +12,7 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
     networks:
       - ecommerce_network
+
   redis:
     image: redis:7-alpine
     container_name: ecommerce_redis
@@ -19,17 +20,20 @@ services:
       - "6379:6379"
     networks:
       - ecommerce_network
+
   postgres:
     image: postgres:15-alpine
     container_name: ecommerce_postgres
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: Password123!
-      POSTGRES_DB: EcommerceDB
+      # (Se eliminó POSTGRES_DB para permitir múltiples bases de datos)
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # Agregamos el volumen para ejecutar el script de inicialización
+      - ./init-multiple-dbs.sql:/docker-entrypoint-initdb.d/init-multiple-dbs.sql
     networks:
       - ecommerce_network
 

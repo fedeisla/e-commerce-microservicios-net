@@ -1,10 +1,12 @@
 <Solution>
-  <Folder Name="/src/" />
-  <Folder Name="/src/1.APIs/" />
-  <Folder Name="/src/1.APIs/Api.Inventario/">
-    <Project Path="src/1.APIs/Api.Inventario/Api.Inventario.Application/Api.Inventario.Application.csproj" />
-    <Project Path="src/1.APIs/Api.Inventario/Api.Inventario.Domain/Api.Inventario.Domain.csproj" />
-    <Project Path="src/1.APIs/Api.Inventario/Api.Inventario.Infrastructure/Api.Inventario.Infrastructure.csproj" />
-    <Project Path="src/1.APIs/Api.Inventario/Api.Inventario.WebAPI/Api.Inventario.WebAPI.csproj" />
+  <Folder Name="/ApiGateways/">
+    <Project Path="src/ApiGateways/Api.Gateway/Api.Gateway.csproj" />
+  </Folder>
+  
+  <Folder Name="/Services/Api.Inventario/">
+    <Project Path="src/Services/Api.Inventario/Api.Inventario.Application/Api.Inventario.Application.csproj" />
+    <Project Path="src/Services/Api.Inventario/Api.Inventario.Domain/Api.Inventario.Domain.csproj" />
+    <Project Path="src/Services/Api.Inventario/Api.Inventario.Infrastructure/Api.Inventario.Infrastructure.csproj" />
+    <Project Path="src/Services/Api.Inventario/Api.Inventario.WebAPI/Api.Inventario.WebAPI.csproj" />
   </Folder>
 </Solution>
