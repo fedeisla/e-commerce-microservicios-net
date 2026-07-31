@@ -1,3 +1,4 @@
+using Api.Inventario.Application.DTOs.Movimientos;
 using Api.Inventario.Application.DTOs.Productos;
 using Api.Inventario.Application.Interfaces;
 using Api.Inventario.Domain.Entities;
@@ -106,5 +107,36 @@ public class ProductoService : IProductoService
 
     // 5. Devolver el producto actualizado
     return await GetByIdAsync(producto.IdProducto);
+}
+
+   public async Task<ProductoDto> RegistrarMovimientoStockAsync(RegistrarMovimientoDto dto)
+{
+  
+    var producto = await _unitOfWork.Productos.GetByIdAsync(dto.IdProducto);
+    
+    if (producto == null)
+        throw new Exception($"No se encontró el producto con ID {dto.IdProducto}");
+
+    if (producto.StockActual + dto.Cantidad < 0)
+        throw new Exception("Stock insuficiente para realizar esta operación.");
+
+    
+    producto.StockActual += dto.Cantidad;
+
+    
+    var nuevoMovimiento = new MovimientoStock
+    {
+        IdMovimiento = Guid.NewGuid(),
+        IdProducto = dto.IdProducto,
+        Motivo = dto.Motivo,
+        Cantidad = dto.Cantidad, 
+        Fecha = DateTime.UtcNow
+    };
+
+    
+    await _unitOfWork.Movimientos.AddAsync(nuevoMovimiento);
+    await _unitOfWork.SaveChangesAsync();
+
+    return await GetByIdAsync(producto.IdProducto) ?? throw new Exception("Error al recuperar el producto.");
 }
 }
