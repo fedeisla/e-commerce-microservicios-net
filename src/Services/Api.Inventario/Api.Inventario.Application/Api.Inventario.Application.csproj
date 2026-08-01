@@ -2,6 +2,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Api.Inventario.Domain\Api.Inventario.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Shared\SharedContracts\SharedContracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MassTransit" Version="8.3.2" />
   </ItemGroup>
 
   <PropertyGroup>
