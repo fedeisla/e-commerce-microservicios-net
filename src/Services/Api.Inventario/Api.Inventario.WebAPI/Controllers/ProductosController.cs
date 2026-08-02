@@ -2,6 +2,7 @@ using Api.Inventario.Application.DTOs.Movimientos;
 using Api.Inventario.Application.DTOs.Productos;
 using Api.Inventario.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using MassTransit; // <-- 1. Agregamos el using de MassTransit
 
 namespace Api.Inventario.WebAPI.Controllers;
 
@@ -10,9 +11,8 @@ namespace Api.Inventario.WebAPI.Controllers;
 public class ProductosController : ControllerBase
 {
     private readonly IProductoService _productoService;
-    private readonly IMovimientoStockService _movimientoService; // 1. Declaramos el nuevo servicio
+    private readonly IMovimientoStockService _movimientoService; 
 
-    // 2. Inyectamos ambos servicios en el constructor
     public ProductosController(IProductoService productoService, IMovimientoStockService movimientoService)
     {
         _productoService = productoService;
@@ -67,7 +67,6 @@ public class ProductosController : ControllerBase
         }
         catch (Exception ex)
         {
-            // Atrapa el error si le mandan un IdCategoria que no existe
             return BadRequest(new { message = ex.Message }); 
         }
     }
@@ -82,18 +81,15 @@ public class ProductosController : ControllerBase
         }
         catch (Exception ex)
         {
-            // Atrapa los errores de stock negativo o producto inexistente
             return BadRequest(new { message = ex.Message });
         }
     }
 
-    
     [HttpGet("{id:guid}/movimientos")]
     public async Task<IActionResult> GetHistorialMovimientos(Guid id)
     {
         try
         {
-            
             var producto = await _productoService.GetByIdAsync(id);
             if (producto == null)
             {
@@ -108,5 +104,19 @@ public class ProductosController : ControllerBase
         {
             return StatusCode(500, new { message = "Error interno al obtener el historial", detalle = ex.Message });
         }
+    }
+
+    [HttpPost("test-rabbitmq")]
+    public async Task<IActionResult> TestRabbitMq([FromServices] IPublishEndpoint publishEndpoint)
+    {
+        var eventoPrueba = new SharedContracts.Eventos.PedidoCreadoEvent(
+            PedidoId: Guid.NewGuid(),
+            ProductoId: Guid.Parse("4fa641ee-fc22-4bfd-a68d-293fa5459e09"), // El ID de tu producto en la DB
+            Cantidad: 2
+        );
+
+        await publishEndpoint.Publish(eventoPrueba);
+        
+        return Ok(new { message = "¡Evento de pedido creado enviado a RabbitMQ!" });
     }
 }

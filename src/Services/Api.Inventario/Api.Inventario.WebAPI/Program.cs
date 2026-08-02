@@ -40,11 +40,13 @@ builder.Services.AddMassTransit(x =>
             h.Password(password);
         });
 
-        // 2. Creamos la cola específica en RabbitMQ y le enchufamos el Consumer
+        // 2. Creamos la cola específica en RabbitMQ y le metemos el Consumer
         cfg.ReceiveEndpoint("inventario-pedido-creado", e =>
         {
             e.ConfigureConsumer<Api.Inventario.Application.Consumers.PedidoCreadoConsumer>(context);
         });
+
+        //aca van las demas colas para los demas consumers de cancelado, etc.
     });
 });
 
@@ -61,19 +63,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-// Endpoint test para probar RabbitMQ
-app.MapPost("/api/test-rabbitmq", async (IPublishEndpoint publishEndpoint) =>
-{
-    var eventoPrueba = new SharedContracts.Eventos.PedidoCreadoEvent(
-        PedidoId: Guid.NewGuid(),
-        ProductoId: Guid.Parse("4fa641ee-fc22-4bfd-a68d-293fa5459e09"), // El ID de tu producto en la DB
-        Cantidad: 2
-    );
-
-    await publishEndpoint.Publish(eventoPrueba);
-    
-    return Results.Ok("¡Evento de pedido creado enviado a RabbitMQ!");
-});
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
