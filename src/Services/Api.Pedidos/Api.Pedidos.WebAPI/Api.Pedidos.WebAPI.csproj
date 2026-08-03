@@ -8,18 +8,18 @@
 
   <ItemGroup>
     <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.2" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.7" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7">
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Api.Inventario.Application\Api.Inventario.Application.csproj" />
-    <ProjectReference Include="..\Api.Inventario.Infrastructure\Api.Inventario.Infrastructure.csproj" />
+    <ProjectReference Include="..\Api.Pedidos.Application\Api.Pedidos.Application.csproj" />
+    <ProjectReference Include="..\Api.Pedidos.Infrastructure\Api.Pedidos.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

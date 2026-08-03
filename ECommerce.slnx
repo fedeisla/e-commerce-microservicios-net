@@ -2,6 +2,7 @@
   <Folder Name="/ApiGateways/">
     <Project Path="src/ApiGateways/Api.Gateway/Api.Gateway.csproj" />
   </Folder>
+  <Folder Name="/Services/" />
   
   <Folder Name="/Services/Api.Inventario/">
     <Project Path="src/Services/Api.Inventario/Api.Inventario.Application/Api.Inventario.Application.csproj" />
@@ -13,4 +14,13 @@
   <Folder Name="/Shared/">
     <Project Path="src/Shared/SharedContracts/SharedContracts.csproj" />
   </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/Api.Pedidos/">
+    <Project Path="src/Services/Api.Pedidos/Api.Pedidos.Application/Api.Pedidos.Application.csproj" />
+    <Project Path="src/Services/Api.Pedidos/Api.Pedidos.Domain/Api.Pedidos.Domain.csproj" />
+    <Project Path="src/Services/Api.Pedidos/Api.Pedidos.Infrastructure/Api.Pedidos.Infrastructure.csproj" />
+    <Project Path="src/Services/Api.Pedidos/Api.Pedidos.WebAPI/Api.Pedidos.WebAPI.csproj" />
+  </Folder>
+  <Folder Name="/src/Shared/" />
 </Solution>
