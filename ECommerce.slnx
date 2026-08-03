@@ -16,6 +16,12 @@
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/Api.Auth/">
+    <Project Path="src/Services/Api.Auth/Api.Auth.Application/Api.Auth.Application.csproj" />
+    <Project Path="src/Services/Api.Auth/Api.Auth.Domain/Api.Auth.Domain.csproj" />
+    <Project Path="src/Services/Api.Auth/Api.Auth.Infrastructure/Api.Auth.Infrastructure.csproj" />
+    <Project Path="src/Services/Api.Auth/Api.Auth.WebAPI/Api.Auth.WebAPI.csproj" />
+  </Folder>
   <Folder Name="/src/Services/Api.Pedidos/">
     <Project Path="src/Services/Api.Pedidos/Api.Pedidos.Application/Api.Pedidos.Application.csproj" />
     <Project Path="src/Services/Api.Pedidos/Api.Pedidos.Domain/Api.Pedidos.Domain.csproj" />
