@@ -5,6 +5,7 @@ using Api.Auth.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,21 @@ builder.Services.AddRateLimiter(options =>
         opt.PermitLimit = 5; 
         opt.Window = TimeSpan.FromMinutes(1); // En una ventana de 1 minuto
         opt.QueueLimit = 0; // Si se pasa de 5, rebota automáticamente sin ponerlo en cola
+    });
+});
+builder.Services.AddMassTransit(x =>
+{
+    
+    x.UsingRabbitMq((context, cfg) =>
+    {
+
+        cfg.Host("localhost", "/", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+
+        cfg.ConfigureEndpoints(context);
     });
 });
 

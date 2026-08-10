@@ -3,6 +3,7 @@ using System;
 using Api.Pedidos.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Api.Pedidos.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(PedidosDbContext))]
-    partial class PedidosDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260810233059_AgregarCarritoModel")]
+    partial class AgregarCarritoModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

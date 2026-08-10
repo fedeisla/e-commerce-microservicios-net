@@ -4,6 +4,7 @@ using Api.Pedidos.Infrastructure.Services;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Api.Pedidos.Infrastructure.Consumers;
+using Api.Pedidos.WebAPI.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +21,7 @@ builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<StockConfirmadoConsumer>();
     x.AddConsumer<StockRechazadoConsumer>();
-
+    x.AddConsumer<UsuarioRegistradoConsumer>();
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host("localhost", "/", h =>

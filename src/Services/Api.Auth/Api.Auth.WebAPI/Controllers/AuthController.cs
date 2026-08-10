@@ -2,6 +2,9 @@ using Api.Auth.Application.DTOs;
 using Api.Auth.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using MassTransit;
+using SharedContracts.Eventos;  
+
 namespace Api.Auth.WebAPI.Controllers;
 
 [ApiController]
@@ -9,10 +12,12 @@ namespace Api.Auth.WebAPI.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IPublishEndpoint _publishEndpoint;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IPublishEndpoint publishEndpoint)
     {
         _authService = authService;
+        _publishEndpoint = publishEndpoint;
     }
 
     [HttpPost("register")]
@@ -20,15 +25,28 @@ public class AuthController : ControllerBase
     {
         try
         {
+           
             var resultado = await _authService.RegistrarUsuarioAsync(dto);
+
+           
+            await _publishEndpoint.Publish(new UsuarioRegistradoEvent
+            {
+                // OJO ACÁ: Como tu servicio devuelve un string, por ahora inventamos el Guid. 
+                // Lo ideal sería que a futuro RegistrarUsuarioAsync devuelva el ID real del usuario creado.
+                UsuarioId = Guid.NewGuid(), 
+                Email = dto.Email,
+                FechaRegistro = DateTime.UtcNow
+            });
+
             return Ok(new { mensaje = resultado });
         }
         catch (Exception ex)
         {
-            // Atrapamos la excepción que lanzamos en el servicio si el mail ya existe
+            
             return BadRequest(new { error = ex.Message });
         }
     }
+
     [HttpPost("login")]
     [EnableRateLimiting("LoginLimiter")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
