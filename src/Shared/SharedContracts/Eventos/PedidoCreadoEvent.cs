@@ -1,7 +1,12 @@
 namespace SharedContracts.Eventos;
 
+public record PedidoItemEvent(
+    Guid ProductoId, 
+    int Cantidad
+);
+
 public record PedidoCreadoEvent(
     Guid PedidoId,
-    Guid ProductoId,
-    int Cantidad
+    Guid UsuarioId,
+    List<PedidoItemEvent> Items
 );

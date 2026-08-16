@@ -105,18 +105,4 @@ public class ProductosController : ControllerBase
             return StatusCode(500, new { message = "Error interno al obtener el historial", detalle = ex.Message });
         }
     }
-
-    [HttpPost("test-rabbitmq")]
-    public async Task<IActionResult> TestRabbitMq([FromServices] IPublishEndpoint publishEndpoint)
-    {
-        var eventoPrueba = new SharedContracts.Eventos.PedidoCreadoEvent(
-            PedidoId: Guid.NewGuid(),
-            ProductoId: Guid.Parse("4fa641ee-fc22-4bfd-a68d-293fa5459e09"), // El ID de tu producto en la DB
-            Cantidad: 2
-        );
-
-        await publishEndpoint.Publish(eventoPrueba);
-        
-        return Ok(new { message = "¡Evento de pedido creado enviado a RabbitMQ!" });
-    }
 }

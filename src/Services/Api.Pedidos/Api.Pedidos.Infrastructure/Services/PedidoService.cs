@@ -20,44 +20,43 @@ public class PedidoService : IPedidoService
         _publishEndpoint = publishEndpoint;
     }
 
-    public async Task<Pedido> CrearPedidoAsync(PedidoCreateDto dto)
+   public async Task<Pedido> CrearPedidoAsync(PedidoCreateDto dto)
+{
+    var pedido = new Pedido
     {
-       
-        var pedido = new Pedido
+        ClienteId = dto.ClienteId,
+        Estado = EstadoPedido.Pendiente, 
+        Detalles = dto.Detalles.Select(d => new DetallePedido
         {
-            ClienteId = dto.ClienteId,
-            Estado = EstadoPedido.Pendiente, 
-            Detalles = dto.Detalles.Select(d => new DetallePedido
-            {
-                ProductoId = d.ProductoId,
-                Cantidad = d.Cantidad,
-                PrecioUnitario = d.PrecioUnitario
-            }).ToList()
-        };
+            ProductoId = d.ProductoId,
+            Cantidad = d.Cantidad,
+            PrecioUnitario = d.PrecioUnitario
+        }).ToList()
+    };
+ 
+    pedido.Total = pedido.Detalles.Sum(d => d.Cantidad * d.PrecioUnitario);
 
-        
-        pedido.Total = pedido.Detalles.Sum(d => d.Cantidad * d.PrecioUnitario);
+    _context.Pedidos.Add(pedido);
+    await _context.SaveChangesAsync();
 
-       
-        _context.Pedidos.Add(pedido);
-        await _context.SaveChangesAsync();
+    // 1. Mapeamos los DetallePedido a PedidoItemEvent
+    var itemsEvento = pedido.Detalles.Select(d => new PedidoItemEvent(
+        d.ProductoId, 
+        d.Cantidad
+    )).ToList();
 
-        // Disparamos los eventos a RabbitMQ
-        // Como nuestro PedidoCreadoEvent acepta un solo ProductoId, 
-        // disparamos un evento por cada producto distinto que haya en el carrito.
-        foreach (var detalle in pedido.Detalles)
-        {
-            var evento = new PedidoCreadoEvent(
-                PedidoId: pedido.Id,
-                ProductoId: detalle.ProductoId,
-                Cantidad: detalle.Cantidad
-            );
+    // 2. Creamos un ÚNICO evento con el carrito completo
+    var evento = new PedidoCreadoEvent(
+        PedidoId: pedido.Id,
+        UsuarioId: pedido.ClienteId,
+        Items: itemsEvento
+    );
 
-            await _publishEndpoint.Publish(evento);
-        }
+    // 3. Publicamos a RabbitMQ una sola vez
+    await _publishEndpoint.Publish(evento);
 
-        return pedido; 
-    }
+    return pedido; 
+}
 
    public async Task<Pedido?> ObtenerPedidoPorIdAsync(Guid id)
     {

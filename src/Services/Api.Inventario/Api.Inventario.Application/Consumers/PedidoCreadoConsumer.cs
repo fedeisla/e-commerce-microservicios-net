@@ -2,7 +2,7 @@ using MassTransit;
 using SharedContracts.Eventos;
 using Api.Inventario.Domain.Entities; 
 using Api.Inventario.Domain.Enums;
-using Api.Inventario.Domain.Interfaces;    
+using Api.Inventario.Domain.Interfaces; 
 
 namespace Api.Inventario.Application.Consumers;
 
@@ -26,35 +26,46 @@ public class PedidoCreadoConsumer : IConsumer<PedidoCreadoEvent>
     {
         var mensaje = context.Message;
         
-        var producto = await _productoRepository.GetByIdAsync(mensaje.ProductoId);
-
-       
-        if (producto == null || producto.StockActual < mensaje.Cantidad)
+        // Iteramos sobre todos los productos que el cliente tenía en su carrito
+        foreach (var item in mensaje.Items)
         {
-            await context.Publish(new StockRechazadoEvent(
-                mensaje.PedidoId, 
-                "Producto inexistente o sin stock suficiente"
-            ));
-            return;
+            // 1. Buscamos el producto puntual de esta vuelta del bucle
+            var producto = await _productoRepository.GetByIdAsync(item.ProductoId);
+
+            // 2. Validación de Stock 
+            if (producto == null || producto.StockActual < item.Cantidad)
+            {
+                // Si falla un solo producto, rechazamos el pedido completo y cortamos la ejecución
+                await context.Publish(new StockRechazadoEvent(
+                    mensaje.PedidoId, 
+                    $"El producto {item.ProductoId} no existe o no tiene stock suficiente"
+                ));
+                
+                return; 
+            }
+
+            // 3. Descontar Stock usando tu propiedad real
+            producto.StockActual -= item.Cantidad;
+            _productoRepository.Update(producto);
+
+            // 4. Registrar Movimiento 
+            var movimiento = new MovimientoStock
+            {
+                IdMovimiento = Guid.NewGuid(), 
+                IdProducto = producto.IdProducto,
+                Cantidad = item.Cantidad,
+                TipoMovimiento = TipoMovimientoStock.AjusteNegativo,
+                Fecha = DateTime.UtcNow,
+                Motivo = $"Venta - Pedido {mensaje.PedidoId}" 
+            };
+            
+            await _movimientoRepository.AddAsync(movimiento);
         }
 
-       
-        producto.StockActual -= mensaje.Cantidad;
-        _productoRepository.Update(producto);
-
-        
-        var movimiento = new MovimientoStock
-        {
-            IdProducto = producto.IdProducto,
-            Cantidad = mensaje.Cantidad,
-            TipoMovimiento = TipoMovimientoStock.AjusteNegativo, 
-            Fecha = DateTime.UtcNow,
-            Motivo = $"Venta - Pedido {mensaje.PedidoId}" 
-        };
-        await _movimientoRepository.AddAsync(movimiento);
-
+        // 5. Persistir cambios de forma atómica con Unit of Work
         await _unitOfWork.SaveChangesAsync();
 
+        // 6. Confirmar éxito hacia el bus de eventos
         await context.Publish(new StockConfirmadoEvent(mensaje.PedidoId));
     }
 }
