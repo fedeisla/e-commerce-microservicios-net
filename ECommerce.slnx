@@ -15,7 +15,9 @@
     <Project Path="src/Shared/SharedContracts/SharedContracts.csproj" />
   </Folder>
   <Folder Name="/src/" />
-  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/">
+    <Project Path="src/Services/Api.Notificaciones/Api.Notificaciones.csproj" />
+  </Folder>
   <Folder Name="/src/Services/Api.Auth/">
     <Project Path="src/Services/Api.Auth/Api.Auth.Application/Api.Auth.Application.csproj" />
     <Project Path="src/Services/Api.Auth/Api.Auth.Domain/Api.Auth.Domain.csproj" />
@@ -28,5 +30,4 @@
     <Project Path="src/Services/Api.Pedidos/Api.Pedidos.Infrastructure/Api.Pedidos.Infrastructure.csproj" />
     <Project Path="src/Services/Api.Pedidos/Api.Pedidos.WebAPI/Api.Pedidos.WebAPI.csproj" />
   </Folder>
-  <Folder Name="/src/Shared/" />
 </Solution>

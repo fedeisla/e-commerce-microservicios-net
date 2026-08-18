@@ -21,7 +21,6 @@ public class StockRechazadoConsumer : IConsumer<StockRechazadoEvent>
         if (pedido != null)
         {
             pedido.Estado = EstadoPedido.Rechazado;
-            // Opcional: Podrías guardar el context.Message.Motivo en la BD si agregás un campo "Notas" al Pedido
             await _context.SaveChangesAsync();
         }
     }

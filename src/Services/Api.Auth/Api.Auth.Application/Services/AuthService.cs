@@ -62,7 +62,7 @@ public class AuthService : IAuthService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    public async Task<string> RegistrarUsuarioAsync(RegistroDto dto)
+   public async Task<(Guid UsuarioId, string Mensaje)> RegistrarUsuarioAsync(RegistroDto dto)
     {
         //Verificar si el email ya existe
         var usuarioExistente = await _usuarioRepository.ObtenerPorEmailAsync(dto.Email);
@@ -89,6 +89,6 @@ public class AuthService : IAuthService
         
         await _usuarioRepository.AgregarAsync(nuevoUsuario);
 
-        return "Usuario registrado con éxito.";
+       return (nuevoUsuario.Id, "Usuario registrado con éxito");
     }
 }

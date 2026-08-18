@@ -40,148 +40,194 @@ public class CarritoController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetCarrito()
     {
-        var usuarioId = ObtenerUsuarioId();
+        try
+        {
+            var usuarioId = ObtenerUsuarioId();
 
-        var carrito = await _dbContext.Carritos
-            .Include(c => c.Items)
-            .FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
+            var carrito = await _dbContext.Carritos
+                .Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
 
-        if (carrito == null)
-            return NotFound(new { mensaje = "El usuario no tiene un carrito activo." });
+            if (carrito == null)
+                return NotFound(new { mensaje = "El usuario no tiene un carrito activo." });
 
-        return Ok(carrito);
+            return Ok(carrito);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { error = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { error = "Ocurrió un problema al obtener el carrito." });
+        }
     }
 
     [HttpPost("items")]
     public async Task<IActionResult> AgregarItem([FromBody] AgregarItemDto dto)
     {
-        var usuarioId = ObtenerUsuarioId();
-
-        var carrito = await _dbContext.Carritos
-            .Include(c => c.Items)
-            .FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
-
-        if (carrito == null)
+        try
         {
-            carrito = new Carrito 
-            { 
-                Id = Guid.NewGuid(), 
-                UsuarioId = usuarioId, 
-                FechaCreacion = DateTime.UtcNow,
-                Items = new List<CarritoItem>()
-            };
-            _dbContext.Carritos.Add(carrito);
-        }
+            var usuarioId = ObtenerUsuarioId();
 
-       
-        var itemExistente = carrito.Items.FirstOrDefault(i => i.ProductoId == dto.ProductoId);
+            var carrito = await _dbContext.Carritos
+                .Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
 
-        if (itemExistente != null)
-        {
-            itemExistente.Cantidad += dto.Cantidad;
-        }
-        else
-        {
-            carrito.Items.Add(new CarritoItem
+            if (carrito == null)
             {
-                Id = Guid.NewGuid(),
-                CarritoId = carrito.Id,
-                ProductoId = dto.ProductoId,
-                ProductoNombre = dto.ProductoNombre,
-                PrecioUnitario = dto.PrecioUnitario,
-                Cantidad = dto.Cantidad
-            });
+                carrito = new Carrito 
+                { 
+                    Id = Guid.NewGuid(), 
+                    UsuarioId = usuarioId, 
+                    FechaCreacion = DateTime.UtcNow,
+                    Items = new List<CarritoItem>()
+                };
+                _dbContext.Carritos.Add(carrito);
+            } 
+
+            var itemExistente = carrito.Items.FirstOrDefault(i => i.ProductoId == dto.ProductoId);
+
+            if (itemExistente != null)
+            {
+                itemExistente.Cantidad += dto.Cantidad;
+            }
+            else
+            {
+                var nuevoItem = new CarritoItem
+                {
+                    Id = Guid.NewGuid(),
+                    ProductoId = dto.ProductoId,
+                    ProductoNombre = dto.ProductoNombre,
+                    PrecioUnitario = dto.PrecioUnitario,
+                    Cantidad = dto.Cantidad
+                };
+                
+                carrito.Items.Add(nuevoItem);
+                _dbContext.Entry(nuevoItem).State = EntityState.Added;
+            }
+
+            carrito.FechaUltimaModificacion = DateTime.UtcNow;
+            
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(carrito);
         }
-
-        carrito.FechaUltimaModificacion = DateTime.UtcNow;
-        await _dbContext.SaveChangesAsync();
-
-        return Ok(carrito);
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { error = ex.Message });
+        }
+        catch (DbUpdateException)
+        {
+            return StatusCode(500, new { error = "Error al actualizar los datos del carrito en la base de datos." });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { error = "Ocurrió un error interno al agregar el producto al carrito." });
+        }
     }
 
     [HttpDelete("items/{productoId}")]
     public async Task<IActionResult> QuitarItem(Guid productoId)
     {
-        var usuarioId = ObtenerUsuarioId();
+        try
+        {
+            var usuarioId = ObtenerUsuarioId();
 
-        var carrito = await _dbContext.Carritos
-            .Include(c => c.Items)
-            .FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
+            var carrito = await _dbContext.Carritos
+                .Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
 
-        if (carrito == null) return NotFound("Carrito no encontrado.");
+            if (carrito == null) return NotFound(new { error = "Carrito no encontrado." });
 
-        var item = carrito.Items.FirstOrDefault(i => i.ProductoId == productoId);
-        
-        if (item == null) return NotFound("El producto no está en el carrito.");
+            var item = carrito.Items.FirstOrDefault(i => i.ProductoId == productoId);
+            
+            if (item == null) return NotFound(new { error = "El producto no está en el carrito." });
 
-        _dbContext.CarritoItems.Remove(item);
-        
-        carrito.FechaUltimaModificacion = DateTime.UtcNow;
-        await _dbContext.SaveChangesAsync();
+            _dbContext.CarritoItems.Remove(item);
+            
+            carrito.FechaUltimaModificacion = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync();
 
-        return NoContent(); 
+            return NoContent(); 
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { error = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { error = "Ocurrió un error al intentar eliminar el producto." });
+        }
     }
 
     [HttpPost("checkout")]
     public async Task<IActionResult> Checkout()
     {
-        var usuarioId = ObtenerUsuarioId();
-
-        // 1. Traemos el carrito con sus ítems
-        var carrito = await _dbContext.Carritos
-            .Include(c => c.Items)
-            .FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
-
-        if (carrito == null || !carrito.Items.Any())
-            return BadRequest("El carrito está vacío o no existe.");
-
-       
-        using var transaction = await _dbContext.Database.BeginTransactionAsync();
-
         try
         {
-            // 2. Convertir Carrito en Pedido Oficial
-            var nuevoPedido = new Pedido
+            var usuarioId = ObtenerUsuarioId();
+
+            var carrito = await _dbContext.Carritos
+                .Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.UsuarioId == usuarioId);
+
+            if (carrito == null || !carrito.Items.Any())
+                return BadRequest(new { error = "El carrito está vacío o no existe." });
+
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+
+            try
             {
-                Id = Guid.NewGuid(),
-                ClienteId = usuarioId, 
-                FechaCreacion = DateTime.UtcNow,
-                Estado = EstadoPedido.Pendiente,
-                Total = carrito.Items.Sum(i => i.PrecioUnitario * i.Cantidad),
-                Detalles = carrito.Items.Select(i => new DetallePedido
+                var nuevoPedido = new Pedido
                 {
                     Id = Guid.NewGuid(),
-                    ProductoId = i.ProductoId,
-                    PrecioUnitario = i.PrecioUnitario,
-                    Cantidad = i.Cantidad
-                }).ToList()
-            };
+                    ClienteId = usuarioId, 
+                    FechaCreacion = DateTime.UtcNow,
+                    Estado = EstadoPedido.Pendiente,
+                    Total = carrito.Items.Sum(i => i.PrecioUnitario * i.Cantidad),
+                    Detalles = carrito.Items.Select(i => new DetallePedido
+                    {
+                        Id = Guid.NewGuid(),
+                        ProductoId = i.ProductoId,
+                        PrecioUnitario = i.PrecioUnitario,
+                        Cantidad = i.Cantidad
+                    }).ToList()
+                };
 
-            _dbContext.Pedidos.Add(nuevoPedido);
+                _dbContext.Pedidos.Add(nuevoPedido);
 
-            // 3. Vaciamos el carrito eliminando sus ítems
-            _dbContext.CarritoItems.RemoveRange(carrito.Items);
-            carrito.FechaUltimaModificacion = DateTime.UtcNow;
+                _dbContext.CarritoItems.RemoveRange(carrito.Items);
+                carrito.FechaUltimaModificacion = DateTime.UtcNow;
 
-            await _dbContext.SaveChangesAsync();
-            
-            await transaction.CommitAsync();
+                await _dbContext.SaveChangesAsync();
+                
+                await transaction.CommitAsync();
 
-            
-            var evento = new PedidoCreadoEvent(
-                nuevoPedido.Id,
-                usuarioId,
-                nuevoPedido.Detalles.Select(d => new PedidoItemEvent(d.ProductoId, d.Cantidad)).ToList()
-            );
+                var evento = new PedidoCreadoEvent(
+                    nuevoPedido.Id,
+                    usuarioId,
+                    nuevoPedido.Detalles.Select(d => new PedidoItemEvent(d.ProductoId, d.Cantidad)).ToList()
+                );
 
-            await _publishEndpoint.Publish(evento);
+                await _publishEndpoint.Publish(evento);
 
-            return Ok(new { mensaje = "Checkout exitoso. Pedido en proceso.", pedidoId = nuevoPedido.Id });
+                return Ok(new { mensaje = "Checkout exitoso. Pedido en proceso.", pedidoId = nuevoPedido.Id });
+            }
+            catch (Exception)
+            {
+                // Si la base de datos falla al guardar, deshacemos la transacción
+                await transaction.RollbackAsync();
+                throw; // Lanzamos el error hacia el catch exterior para devolver el 500
+            }
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { error = ex.Message });
         }
         catch (Exception)
         {
-            await transaction.RollbackAsync();
-            throw; 
+            return StatusCode(500, new { error = "Ocurrió un error al procesar el checkout. No se generó el pedido." });
         }
     }
 }

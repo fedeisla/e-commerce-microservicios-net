@@ -26,19 +26,16 @@ public class AuthController : ControllerBase
         try
         {
            
-            var resultado = await _authService.RegistrarUsuarioAsync(dto);
+           var (usuarioId, mensaje) = await _authService.RegistrarUsuarioAsync(dto);
 
-           
             await _publishEndpoint.Publish(new UsuarioRegistradoEvent
             {
-                // OJO ACÁ: Como tu servicio devuelve un string, por ahora inventamos el Guid. 
-                // Lo ideal sería que a futuro RegistrarUsuarioAsync devuelva el ID real del usuario creado.
-                UsuarioId = Guid.NewGuid(), 
+                UsuarioId = usuarioId, 
                 Email = dto.Email,
                 FechaRegistro = DateTime.UtcNow
             });
 
-            return Ok(new { mensaje = resultado });
+            return Ok(new { mensaje = mensaje });
         }
         catch (Exception ex)
         {
