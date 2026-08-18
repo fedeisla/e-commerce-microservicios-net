@@ -67,7 +67,8 @@ public class CarritoController : ControllerBase
             { 
                 Id = Guid.NewGuid(), 
                 UsuarioId = usuarioId, 
-                FechaCreacion = DateTime.UtcNow 
+                FechaCreacion = DateTime.UtcNow,
+                Items = new List<CarritoItem>()
             };
             _dbContext.Carritos.Add(carrito);
         }
