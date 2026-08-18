@@ -5,14 +5,29 @@ using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Registrar Redis como Singleton en el contenedor de dependencias
+// Registrar Redis como Singleton en el contenedor de dependencias (Para el Rate Limiter)
 var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
 builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
 
 // Registrar nuestro limitador distribuido
 builder.Services.AddSingleton<RedisRateLimiter>();
 
-// Configurar la autenticación JWT para que el Gateway sepa leer y validar los tokens
+// Configurar Redis 
+builder.Services.AddStackExchangeRedisOutputCache(options =>
+{
+    options.Configuration = redisConnectionString;
+    options.InstanceName = "ECommerceGateway_Cache_";
+});
+
+// Crear la política de caché que usamos en el appsettings 
+builder.Services.AddOutputCache(options =>
+{
+    options.AddPolicy("CatalogoCache", policy => 
+        policy.Expire(TimeSpan.FromSeconds(60))); 
+});
+
+
+// Configurar la autenticación JWT para que el Gateway 
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -64,9 +79,13 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// Orden crítico de los middlewares de seguridad y ruteo
+// middlewares de seguridad y ruteo
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Middleware de caché 
+app.UseOutputCache();
+
 
 app.MapReverseProxy();
 
