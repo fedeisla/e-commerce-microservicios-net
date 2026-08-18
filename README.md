@@ -1,4 +1,4 @@
-# 🛒 E-Commerce Microservices Architecture
+#  E-Commerce Microservices Architecture
 
 Proyecto de E-Commerce desarrollado bajo arquitectura de microservicios, diseñado para ser escalable, desacoplado y resiliente. El sistema utiliza mensajería asíncrona para gestionar transacciones distribuidas y asegurar la integridad de los datos.
 
@@ -10,7 +10,7 @@ Proyecto de E-Commerce desarrollado bajo arquitectura de microservicios, diseña
 
 ---
 
-## 🏗️ Arquitectura del Sistema
+##  Arquitectura del Sistema
 
 El proyecto sigue un enfoque de **Microservicios Coreografiados** mediante el patrón **Saga**:
 
@@ -19,18 +19,19 @@ El proyecto sigue un enfoque de **Microservicios Coreografiados** mediante el pa
 *   **Api.Inventario:** Control de stock de productos.
 *   **Api.Notificaciones:** Envío de notificaciones asíncronas vía eventos.
 
+
 ### Flujo de Mensajería
 Utilizamos **MassTransit** sobre **RabbitMQ** para la comunicación entre servicios. Cuando un pedido es creado, los servicios de Inventario y Pedidos ejecutan una coreografía de eventos para confirmar o rechazar la transacción, garantizando la consistencia eventual.
 
 ---
 
-## 🚀 Cómo ejecutar el proyecto
+##  Cómo ejecutar el proyecto
 
 Este proyecto está totalmente contenedorizado. Solo necesitás tener [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado.
 
 ### 1. Clonar el repositorio
 ```bash
-git clone [https://github.com/tu-usuario-github/e-commerce-microservicios-net.git](https://github.com/tu-usuario-github/e-commerce-microservicios-net.git)
+git clone [https://github.com/tu-usuario-github/e-commerce-microservicios-net.git]
 cd e-commerce-microservicios-net
 ```
 ### 2. Levantar la infraestructura
