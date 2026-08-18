@@ -1,57 +1,40 @@
+# 🛒 E-Commerce Microservices Architecture
 
-# E-Commerce Microservices (.NET & Docker)
+Proyecto de E-Commerce desarrollado bajo arquitectura de microservicios, diseñado para ser escalable, desacoplado y resiliente. El sistema utiliza mensajería asíncrona para gestionar transacciones distribuidas y asegurar la integridad de los datos.
 
-Este proyecto es una implementación de una arquitectura de microservicios orientada a eventos, diseñada para ser escalable, desacoplada y de alta disponibilidad. Utiliza el ecosistema de **.NET** junto con herramientas de mensajería, caché y contenedores para resolver los desafíos de un sistema de comercio electrónico moderno.
+![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white)
+![.NET 8](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
+![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)
 
-##  Arquitectura del Sistema
+---
 
-El sistema está diseñado bajo el patrón de **Arquitectura Orientada a Eventos (EDA)**. El flujo principal se basa en el desacople de procesos pesados (como la actualización de inventario y notificaciones) del hilo principal de ejecución del cliente.
+## 🏗️ Arquitectura del Sistema
 
-### Modelo Inicial
-A continuación se presenta el esquema arquitectónico que rige el diseño de este sistema:
+El proyecto sigue un enfoque de **Microservicios Coreografiados** mediante el patrón **Saga**:
 
-<img width="945" height="1026" alt="Microservicio" src="https://github.com/user-attachments/assets/935682cf-72ee-4ab6-ac6a-fd2320942caa" />
+*   **Api.Auth:** Gestión de usuarios y autenticación (JWT).
+*   **Api.Pedidos:** Gestión de carrito de compras y órdenes de pedido.
+*   **Api.Inventario:** Control de stock de productos.
+*   **Api.Notificaciones:** Envío de notificaciones asíncronas vía eventos.
 
+### Flujo de Mensajería
+Utilizamos **MassTransit** sobre **RabbitMQ** para la comunicación entre servicios. Cuando un pedido es creado, los servicios de Inventario y Pedidos ejecutan una coreografía de eventos para confirmar o rechazar la transacción, garantizando la consistencia eventual.
 
-### Componentes Principales:
-- **API E-Commerce (User):** El carril rápido para el cliente final. Implementa caché con **Redis** para lecturas de stock ultrarrápidas y publica eventos en **RabbitMQ**.
-- **API E-Commerce Admin:** Panel de gestión síncrono para administradores.
-- **Microservicio de Inventario:** Worker Service que consume eventos de compra y gestiona el stock físico.
-- **Microservicio de Identidad:** Proveedor de identidad basado en **JWT** (JSON Web Tokens).
-- **Microservicio de Notificaciones:** Sistema de alertas al usuario final.
+---
 
-## Tecnologías Utilizadas
-- **Backend:** .NET 8 (C#)
-- **Mensajería:** RabbitMQ (Broker)
-- **Caché:** Redis
-- **Base de Datos:** PostgreSQL
-- **Contenedores:** Docker & Docker Compose
-- **ORM:** Entity Framework Core
+## 🚀 Cómo ejecutar el proyecto
 
-## Cómo Levantar el Proyecto
+Este proyecto está totalmente contenedorizado. Solo necesitás tener [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado.
 
-Este proyecto utiliza Docker para garantizar que el entorno de desarrollo sea idéntico en cualquier máquina.
-
-### Requisitos previos:
-- Docker Desktop instalado.
-- .NET SDK 8 instalado (para desarrollo).
-
-### Pasos para levantar el proyecto:
-
-1. Clonar el repositorio
-
- ```Bash
-git clone https://github.com/fedeisla/e-commerce-microservicios-net.git
-```
-2. Acceder a la carpeta del proyecto:
-
- ```Bash
+### 1. Clonar el repositorio
+```bash
+git clone [https://github.com/tu-usuario-github/e-commerce-microservicios-net.git](https://github.com/tu-usuario-github/e-commerce-microservicios-net.git)
 cd e-commerce-microservicios-net
 ```
-
-3. Levantar los servicios con Docker:
-Asegúrate de tener Docker Desktop iniciado y ejecuta:
-
- ```Bash
+### 2. Levantar la infraestructura
+Ejecuta el siguiente comando en la raíz para iniciar Postgres, RabbitMQ y Redis:
+```bash
 docker-compose up -d
 ```
