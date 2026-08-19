@@ -5,7 +5,7 @@ Este documento detalla el diseño de software y la infraestructura subyacente de
 
 A diferencia de una arquitectura monolítica tradicional, este sistema se basa en el principio de **desacoplamiento total**. Cada microservicio es un *Bounded Context* (Contexto Acotado) autónomo, que posee su propia base de datos, lógica de dominio y ciclo de vida, permitiendo que el sistema evolucione de manera ágil sin efectos colaterales inesperados.
 
----
+
 
 ## 1.2 Visión General del Sistema
 
@@ -22,7 +22,7 @@ El flujo de información no se basa en llamadas síncronas (HTTP/REST) entre ser
 *   **Consistencia Eventual:** Se prioriza la disponibilidad y la escalabilidad, asegurando que el estado del sistema converja hacia la consistencia a través de la propagación de eventos.
 *   **Independencia Tecnológica:** Cada servicio tiene la autonomía para escalar sus recursos según la carga de trabajo específica que reciba.
 
----
+
 
 ## 1.3 Filosofía de Diseño
 El diseño de este proyecto se rige por tres pilares fundamentales:
@@ -31,7 +31,7 @@ El diseño de este proyecto se rige por tres pilares fundamentales:
 2.  **Transacciones Distribuidas (Patrón Saga):** Dado que no podemos utilizar transacciones ACID tradicionales entre microservicios, el sistema implementa una **Saga Coreografiada**. Los servicios colaboran emitiendo eventos de éxito o compensación ante fallos (ej: *StockRechazadoEvent*), manteniendo la integridad del proceso de compra.
 3.  **Comunicación Contratada:** El uso de **MassTransit** sobre RabbitMQ nos permite definir contratos fuertemente tipados. Esto garantiza que cualquier cambio en la estructura de un mensaje sea detectado en tiempo de compilación, minimizando errores en tiempo de ejecución.
 
----
+
 
 ## 1.4 Alcance y Consideraciones del Proyecto
 

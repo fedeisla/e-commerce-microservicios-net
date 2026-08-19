@@ -2,7 +2,6 @@
 
 Aunque el ecosistema de microservicios actualmente se ejecuta en un entorno de desarrollo local, la arquitectura fue diseñada bajo los principios de **Aplicaciones Nativas de la Nube (Cloud-Native)** y la metodología **Twelve-Factor App**. Esto garantiza que el sistema sea fácilmente portable, escalable y preparado para un despliegue en entornos productivos.
 
----
 
 ## 5.1 Infraestructura como Código (Docker Compose)
 
@@ -65,7 +64,6 @@ volumes:
 ```
 </details>
 
----
 
 ## 5.2 Gestión de Configuración y Secretos
 
@@ -73,7 +71,6 @@ En preparación para entornos productivos, el código fuente no contiene credenc
 * **Desarrollo Local:** Las cadenas de conexión, claves de encriptación JWT y configuraciones de RabbitMQ/Redis se inyectan a través de los archivos `appsettings.json` o `appsettings.Development.json`.
 * **Producción:** La arquitectura está preparada para que estos valores sean sobrescritos mediante **Variables de Entorno** a nivel del contenedor, o integrados con gestores de secretos corporativos (como Azure Key Vault o AWS Secrets Manager).
 
----
 
 ## 5.3 Pipeline Propuesto de Integración y Despliegue Continuo (CI/CD)
 

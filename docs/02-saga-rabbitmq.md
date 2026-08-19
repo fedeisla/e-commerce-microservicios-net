@@ -4,7 +4,7 @@ En una aplicación monolítica tradicional, las operaciones complejas (como cobr
 
 En una arquitectura de microservicios, este paradigma se rompe. Cada dominio posee su propia base de datos aislada, imposibilitando las transacciones centralizadas. Para resolver este desafío de consistencia de datos distribuida, el ecosistema implementa el **Patrón Saga** apoyado en una **Arquitectura Orientada a Eventos (EDA)**.
 
----
+
 
 ## 2.1 Componentes del Ecosistema
 
@@ -15,7 +15,7 @@ Para habilitar esta comunicación distribuida, la arquitectura se apoya en los s
 * **Productores y Consumidores:** Los servicios asumen roles dinámicos. Por ejemplo, `Api.Pedidos` actúa como Productor al publicar un `PedidoCreadoEvent`, mientras que `Api.Inventario` actúa como Consumidor al mantener un proceso de escucha activa (Listener) sobre la red.
 * **MassTransit + RabbitMQ:** El Message Broker. Constituye el canal de comunicación asíncrona que retiene y distribuye los mensajes entre los dominios, garantizando la entrega.
 
----
+
 
 ## 2.2 Justificación Arquitectónica: Coreografía vs. Orquestación
 
@@ -32,7 +32,7 @@ En la Coreografía, no existe un coordinador central. Cada microservicio es comp
 ### Trade-offs (Desventajas asumidas)
 El desafío principal de la Coreografía es la pérdida de visibilidad del flujo transaccional. Al no existir un controlador central, rastrear en qué estado quedó una petición compleja requiere de estrategias de observabilidad maduras, como la implementación de trazabilidad distribuida (OpenTelemetry).
 
----
+
 
 ## 2.3 El Flujo de Compra (Checkout Saga)
 
