@@ -7,7 +7,7 @@ A diferencia de una arquitectura monolítica tradicional, este sistema se basa e
 
 ---
 
-## 2. Visión General del Sistema
+## 1.2 Visión General del Sistema
 
 <div align="center">
   <img width="80%" alt="Diagrama de Arquitectura E-Commerce" src="assets/DiagramaE-Comerce.png" />
@@ -24,7 +24,7 @@ El flujo de información no se basa en llamadas síncronas (HTTP/REST) entre ser
 
 ---
 
-## 3. Filosofía de Diseño
+## 1.3 Filosofía de Diseño
 El diseño de este proyecto se rige por tres pilares fundamentales:
 
 1.  **Autonomía de Datos:** Cada servicio posee su propia persistencia (PostgreSQL). No existen consultas cruzadas entre bases de datos; la comunicación ocurre exclusivamente a través de los eventos definidos en el contrato compartido (`SharedContracts`).
@@ -33,7 +33,7 @@ El diseño de este proyecto se rige por tres pilares fundamentales:
 
 ---
 
-## 4. Alcance y Consideraciones del Proyecto
+## 1.4 Alcance y Consideraciones del Proyecto
 
 Para la correcta evaluación de este repositorio, es importante tener en cuenta las siguientes consideraciones respecto a su desarrollo:
 

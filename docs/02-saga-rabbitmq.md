@@ -1,4 +1,4 @@
-# 4. Arquitectura Orientada a Eventos y Patrón Saga
+# 2. Arquitectura Orientada a Eventos y Patrón Saga
 
 En una aplicación monolítica tradicional, las operaciones complejas (como cobrar, descontar stock y generar un pedido) se resuelven mediante transacciones de base de datos tradicionales (ACID). Si un paso falla, el motor de base de datos ejecuta un `rollback` automático.
 
@@ -6,7 +6,7 @@ En una arquitectura de microservicios, este paradigma se rompe. Cada dominio pos
 
 ---
 
-## 4.1 Componentes del Ecosistema
+## 2.1 Componentes del Ecosistema
 
 Para habilitar esta comunicación distribuida, la arquitectura se apoya en los siguientes pilares tecnológicos:
 
@@ -17,7 +17,7 @@ Para habilitar esta comunicación distribuida, la arquitectura se apoya en los s
 
 ---
 
-## 4.2 Justificación Arquitectónica: Coreografía vs. Orquestación
+## 2.2 Justificación Arquitectónica: Coreografía vs. Orquestación
 
 El Patrón Saga ejecuta una secuencia de transacciones locales coordinadas. Para este proyecto, se ha descartado el modelo de Orquestación en favor de la **Coreografía**.
 
@@ -34,7 +34,7 @@ El desafío principal de la Coreografía es la pérdida de visibilidad del flujo
 
 ---
 
-## 4.3 El Flujo de Compra (Checkout Saga)
+## 2.3 El Flujo de Compra (Checkout Saga)
 
 El proceso de checkout ilustra la delegación de responsabilidades mediante eventos.
 
@@ -80,7 +80,7 @@ sequenceDiagram
 
 ---
 
-## 4.4 Resiliencia Adicional y Manejo de Errores
+## 2.4 Resiliencia Adicional y Manejo de Errores
 
 Para robustecer la red de coreografía, la integración con MassTransit incluye:
 * **Dead Letter Queues (DLQ):** Si un evento falla repetidamente al ser consumido (por errores lógicos o datos corruptos), el mensaje se traslada a una cola de errores. Esto previene el bloqueo del flujo principal y retiene el payload para auditoría.

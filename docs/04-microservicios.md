@@ -1,11 +1,11 @@
-#  3. Microservicios y Dominios de Negocio
+# 4. Microservicios y Dominios de Negocio
 
 El sistema está compuesto por cuatro microservicios principales. Cada uno representa un **Bounded Context** aislado, con su propia lógica de negocio, reglas de dominio y base de datos autónoma, respetando el patrón *Database-per-Service*.
 
 > **Nota Arquitectónica Global:** Todos los microservicios de este ecosistema han sido diseñados internamente siguiendo los principios de **Clean Architecture**. Esto garantiza una separación estricta de responsabilidades (Domain, Application, Infrastructure y Presentation), manteniendo las reglas de negocio completamente agnósticas a los detalles de implementación (como Entity Framework o MassTransit).
 
 
-## 3.1 Api.Auth (Identidad y Accesos)
+## 4.1 Api.Auth (Identidad y Accesos)
 
 Es el único servicio encargado de conocer las credenciales de los usuarios. Ningún otro servicio tiene acceso a las contraseñas ni a los datos sensibles de autenticación.
 
@@ -35,7 +35,7 @@ erDiagram
 </details>
 
 
-## 3.2 Api.Pedidos (Gestión de Órdenes y Carritos)
+## 4.2 Api.Pedidos (Gestión de Órdenes y Carritos)
 
 Es el núcleo transaccional del cliente. Maneja la persistencia temporal de los carritos de compra, orquesta la intención de adquisición (Checkout) y mantiene el histórico inmutable de los pedidos.
 
@@ -103,7 +103,7 @@ erDiagram
 </details>
 
 
-## 3.3 Api.Inventario (Catálogo y Control de Stock)
+## 4.3 Api.Inventario (Catálogo y Control de Stock)
 
 Constituye la fuente de verdad absoluta sobre la disponibilidad física de los productos y la estructura del catálogo. Este microservicio está diseñado con un enfoque de administración centralizada, sirviendo como el backend principal para el backoffice corporativo.
 
@@ -157,8 +157,7 @@ erDiagram
 </details>
 
 
-
-## 3.4 Api.Notificaciones (Canal de Alertas)
+## 4.4 Api.Notificaciones (Canal de Alertas)
 
 Un servicio satélite de fondo (Worker) diseñado puramente para reaccionar a los cambios de estado del ecosistema. Su objetivo arquitectónico es demostrar el patrón de observabilidad y desacoplamiento mediante mensajería.
 
@@ -171,9 +170,7 @@ Un servicio satélite de fondo (Worker) diseñado puramente para reaccionar a lo
   * **Consume:** `PedidoCreadoEvent` (Simula notificación de recepción de la orden).
   * **Consume:** `StockConfirmadoEvent` / `StockRechazadoEvent` (Simula el envío del resultado transaccional definitivo de la compra al cliente).
 
-
 ---
 
-<div align="left">
-  <b><a href="./03-componentes.md">Componentes </a></b>
-</div>
+| <b><a href="./03-api-gateway.md">Anterior: API Gateway (YARP)</a></b> | <b><a href="./05-despliegue-e-infraestructura.md">Siguiente: Infraestructura y Despliegue</a></b> |
+| :--- | ---: |
