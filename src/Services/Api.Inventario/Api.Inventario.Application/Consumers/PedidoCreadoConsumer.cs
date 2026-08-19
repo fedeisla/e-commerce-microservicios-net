@@ -35,10 +35,14 @@ public class PedidoCreadoConsumer : IConsumer<PedidoCreadoEvent>
             // 2. Validación de Stock 
             if (producto == null || producto.StockActual < item.Cantidad)
             {
+                var motivo = producto == null 
+                    ? $"El producto con ID {item.ProductoId} no existe en el catálogo."
+                    : $"Stock insuficiente para el producto {item.ProductoId}. Solicitado: {item.Cantidad}, Disponible: {producto.StockActual}";
+
                 // Si falla un solo producto, rechazamos el pedido completo y cortamos la ejecución
                 await context.Publish(new StockRechazadoEvent(
-                    mensaje.PedidoId, 
-                    $"El producto {item.ProductoId} no existe o no tiene stock suficiente"
+                    mensaje.PedidoId,
+                    motivo
                 ));
                 
                 return; 

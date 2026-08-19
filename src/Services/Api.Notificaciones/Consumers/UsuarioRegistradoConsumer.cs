@@ -18,7 +18,6 @@ public class UsuarioRegistradoConsumer : IConsumer<UsuarioRegistradoEvent>
 
         _logger.LogInformation("SIMULANDO EMAIL DE BIENVENIDA");
         _logger.LogInformation($"Para: {evento.Email}");
-        _logger.LogInformation($"Registrado el: {evento.FechaRegistro:dd/MM/yyyy HH:mm}");
         _logger.LogInformation($"Mensaje: ¡Hola! Tu cuenta fue creada exitosamente en nuestro E-Commerce.");
         
 

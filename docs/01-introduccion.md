@@ -43,5 +43,5 @@ Para la correcta evaluación de este repositorio, es importante tener en cuenta 
 ---
 
 <div align="right">
-  <b><a href="./02-componentes.md">Siguiente: Gateway </a></b>
+  <b><a href="./02-saga-rabbitmq.md">Siguiente: Patrón Saga y Message Broker </a></b>
 </div>

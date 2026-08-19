@@ -28,12 +28,12 @@ public class AuthController : ControllerBase
            
            var (usuarioId, mensaje) = await _authService.RegistrarUsuarioAsync(dto);
 
-            await _publishEndpoint.Publish(new UsuarioRegistradoEvent
-            {
-                UsuarioId = usuarioId, 
-                Email = dto.Email,
-                FechaRegistro = DateTime.UtcNow
-            });
+            await _publishEndpoint.Publish(new UsuarioRegistradoEvent(
+                usuarioId, 
+                dto.Email, 
+                dto.Nombre, 
+                dto.Apellido
+            ));
 
             return Ok(new { mensaje = mensaje });
         }

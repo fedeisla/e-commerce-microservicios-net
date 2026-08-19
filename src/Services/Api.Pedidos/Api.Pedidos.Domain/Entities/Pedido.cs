@@ -11,4 +11,23 @@ public class Pedido
     public decimal Total { get; set; }
 
     public List<DetallePedido> Detalles { get; set; } = new();
+    public void ConfirmarStock()
+    {
+        if (Estado != EstadoPedido.Pendiente)
+        {
+            throw new InvalidOperationException("Solo los pedidos pendientes pueden ser confirmados.");
+        }
+        
+        Estado = EstadoPedido.Confirmado;
+    }
+
+    public void RechazarStock()
+    {
+        if (Estado != EstadoPedido.Pendiente)
+        {
+            throw new InvalidOperationException("Solo los pedidos pendientes pueden ser rechazados.");
+        }
+        
+        Estado = EstadoPedido.Rechazado;
+    }
 }

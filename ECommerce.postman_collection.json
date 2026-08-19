@@ -1,0 +1,172 @@
+{
+  "info": {
+    "_postman_id": "f44c134e-6863-4bfc-a721-f4dfdf8bfe02",
+    "name": "E-Commerce Saga Architecture",
+    "description": "Colección de pruebas para el flujo de microservicios. Todas las peticiones deben apuntar al puerto del API Gateway (YARP).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "40763285"
+  },
+  "item": [
+    {
+      "name": "1. Auth - Registrar Usuario",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test@test.com\",\n  \"password\": \"Password123!\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/auth/register",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Auth - Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test@test.com\",\n  \"password\": \"Password123!\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. Inventario - Crear Producto (Requiere Token Admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_0or7}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sku\": \"PROD-001\",\n  \"nombre\": \"Teclado Mecánico\",\n  \"precioBase\": 50000,\n  \"stockDisponible\": 10\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/productos",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "productos"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Pedidos - Agregar al Carrito (Requiere Token)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_0or7}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productoId\": \"AQUI_VA_EL_GUID_DEL_PRODUCTO\",\n  \"productoNombre\": \"Teclado Mecánico\",\n  \"precioUnitario\": 50000,\n  \"cantidad\": 1\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/pedidos/carrito/items",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "pedidos",
+            "carrito",
+            "items"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. Pedidos - Checkout Saga (Requiere Token)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_0or7}}"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:5000/api/pedidos/carrito/checkout",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "pedidos",
+            "carrito",
+            "checkout"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "bearer_token_0or7",
+      "secret": true
+    }
+  ]
+}

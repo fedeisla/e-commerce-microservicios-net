@@ -8,23 +8,38 @@ using Api.Pedidos.WebAPI.Consumers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.RateLimiting;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-
+// 1. Configuración de Base de Datos
 builder.Services.AddDbContext<PedidosDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
+// 2. Inyección de Dependencias
 builder.Services.AddScoped<IPedidoService, PedidoService>();
+builder.Services.AddScoped<ICarritoService, CarritoService>();
 
+// 3. Rate Limiting (Protección Anti-Spam para Checkout)
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddFixedWindowLimiter("CheckoutLimiter", opt =>
+    {
+        opt.PermitLimit = 3; // Máximo 3 intentos de checkout...
+        opt.Window = TimeSpan.FromSeconds(30); // ...cada 30 segundos
+        opt.QueueLimit = 0; 
+    });
+});
 
-
+// 4. Configuración de MassTransit y RabbitMQ
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<StockConfirmadoConsumer>();
     x.AddConsumer<StockRechazadoConsumer>();
     x.AddConsumer<UsuarioRegistradoConsumer>();
+    
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host("localhost", "/", h =>
@@ -37,16 +52,19 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
+// 5. Controladores y Serialización JSON
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 });
+
+// 6. Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Configuración de Autenticación JWT (Zero Trust)
 builder.Services.AddAuthentication(options =>
 {
-    // Le decimos que por defecto use esquemas JWT (Bearer)
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
@@ -68,13 +86,18 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter(); 
+
 app.MapControllers();
 
 app.Run();
