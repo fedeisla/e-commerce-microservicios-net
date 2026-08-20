@@ -56,16 +56,20 @@ docker-compose up -d
 ```
 
 ### 3. Iniciar los Microservicios
-Abre la solución (`.sln`) en Visual Studio 2022 o JetBrains Rider y configura la solución para **iniciar múltiples proyectos** (Startup Projects) al mismo tiempo, seleccionando el API Gateway y todas las APIs.
-Alternativamente, puedes ejecutarlos individualmente mediante la CLI:
-```bash
-dotnet run --project src/Api.Gateway/Api.Gateway.csproj
-dotnet run --project src/Api.Auth/Api.Auth.csproj
-# ... (repetir para el resto de APIs)
-```
+Para facilitar la evaluación técnica, el proyecto incluye un script de automatización. Simplemente ejecuta el archivo `start-services.bat` ubicado en la raíz del proyecto (puedes hacerle doble clic o ejecutarlo desde la terminal).
+
+Este script abrirá automáticamente una ventana de terminal para cada dominio y el API Gateway, permitiéndote observar el flujo asíncrono y los logs en tiempo real.
 
 ---
 
 ## Pruebas (Postman)
 
 En la carpeta raíz del repositorio encontrarás el archivo `ECommerce-Saga-Collection.json`. Puedes importarlo directamente en Postman o Insomnia para tener listos todos los endpoints configurados (Registro, Login, Gestión de Catálogo y Flujo de Checkout) y probar la arquitectura localmente.
+
+###  Exploración de APIs (Swagger UI)
+
+Además de la colección de Postman, todos los microservicios tienen **Swagger** configurado e integrado. 
+
+Si deseas explorar la totalidad de los endpoints disponibles, verificar los esquemas de datos (DTOs) o probar peticiones individuales de forma visual, puedes acceder a la interfaz de Swagger navegando a la ruta `/swagger` de cada API mientras se encuentran en ejecución (por ejemplo: `http://localhost:5000/swagger` para el Gateway).
+
+> Para probar los endpoints protegidos desde Swagger, haz clic en el botón **"Authorize"** en la parte superior de la página e ingresa tu token con el prefijo Bearer (ejemplo: `Bearer eyJhbGci...`).

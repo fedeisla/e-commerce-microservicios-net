@@ -8,8 +8,8 @@ services:
       - "5672:5672" 
       - "15672:15672" 
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
     networks:
       - ecommerce_network
 
@@ -25,8 +25,8 @@ services:
     image: postgres:15-alpine
     container_name: ecommerce_postgres
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: Password123!
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASS:-Password123!}
     ports:
       - "5432:5432"
     volumes:

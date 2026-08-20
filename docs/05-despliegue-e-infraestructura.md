@@ -112,6 +112,13 @@ Esta preparación arquitectónica habilita los siguientes comportamientos corpor
 * **Consistencia Distribuida del Gateway:** Dado que YARP utiliza Redis como almacén externo para el Rate Limiting y la Caché, el Gateway puede escalar a "N" instancias. Si una IP maliciosa es bloqueada por la Instancia 1, la Instancia 2 compartirá esa información en tiempo real a través de Redis, manteniendo el cerco de seguridad perimetral intacto en toda la red.
 
 
+## Gestión de Secretos y Configuración 
+
+Para lograr un balance entre la experiencia de desarrollo local y los estándares de seguridad, este proyecto implementa el patrón de **Fallback de Variables de Entorno** y segmentación de configuraciones:
+
+* **.NET AppSettings:** Los archivos `appsettings.json` principales (diseñados para Producción) se encuentran limpios en el repositorio y no exponen secretos, delegando la responsabilidad a la inyección de variables de entorno. La ejecución local sin fricción es posible gracias a los `appsettings.Development.json`, que contienen credenciales genéricas (ej. `Password123!`) y apuntan a `localhost`.
+* **Docker Compose:** Utiliza la sintaxis de fallback (`${VAR:-default}`). Si el motor no detecta un archivo `.env` productivo, inyecta automáticamente valores por defecto seguros para desarrollo local, permitiendo que el proyecto funcione *out-of-the-box*. Ninguna credencial real de producción se encuentra expuesta en el control de versiones.
+
 ---
 
 | <b><a href="./03-api-gateway.md">Anterior: API Gateway (YARP)</a></b> | <b><a href="../README.md">Volver al Inicio</a></b> |
