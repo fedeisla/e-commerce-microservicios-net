@@ -28,8 +28,8 @@ services:
       - "5672:5672" 
       - "15672:15672" 
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
     networks:
       - ecommerce_network
 
@@ -45,8 +45,8 @@ services:
     image: postgres:15-alpine
     container_name: ecommerce_postgres
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: Password123!
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASS:-Password123!}
     ports:
       - "5432:5432"
     volumes:
@@ -82,7 +82,7 @@ flowchart LR
     
     subgraph CI [Integración Continua]
         direction TB
-        Build[Build .NET 8]
+        Build[Build .NET 10]
         Test[Unit/Integration Tests]
         Image[Docker Build]
         Build --> Test --> Image
@@ -121,5 +121,5 @@ Para lograr un balance entre la experiencia de desarrollo local y los estándare
 
 ---
 
-| <b><a href="./03-api-gateway.md">Anterior: API Gateway (YARP)</a></b> | <b><a href="../README.md">Volver al Inicio</a></b> |
+| <b><a href="./03-componentes.md">Anterior: API Gateway (YARP)</a></b> | <b><a href="../README.md">Volver al Inicio</a></b> |
 | :--- | ---: |
