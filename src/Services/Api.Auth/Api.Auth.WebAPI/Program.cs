@@ -56,6 +56,12 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+    context.Database.Migrate();
+}
+
 
 if (app.Environment.IsDevelopment())
 {
