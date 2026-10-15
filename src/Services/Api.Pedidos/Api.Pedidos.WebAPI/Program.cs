@@ -53,7 +53,20 @@ builder.Services.AddMassTransit(x =>
             h.Password(password);
         });
 
-        cfg.ConfigureEndpoints(context); 
+        cfg.ReceiveEndpoint("pedidos-stock-confirmado", e =>
+        {
+            e.ConfigureConsumer<StockConfirmadoConsumer>(context);
+        });
+
+        cfg.ReceiveEndpoint("pedidos-stock-rechazado", e =>
+        {
+            e.ConfigureConsumer<StockRechazadoConsumer>(context);
+        });
+
+        cfg.ReceiveEndpoint("pedidos-usuario-registrado", e =>
+        {
+            e.ConfigureConsumer<UsuarioRegistradoConsumer>(context);
+        });
     });
 });
 
