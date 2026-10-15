@@ -1,29 +1,11 @@
-version: '3.8'
-
 services:
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: ecommerce_rabbitmq
-    ports:
-      - "5672:5672" 
-      - "15672:15672" 
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
-    networks:
-      - ecommerce_network
-
-  redis:
-    image: redis:7-alpine
-    container_name: ecommerce_redis
-    ports:
-      - "6379:6379"
-    networks:
-      - ecommerce_network
-
+  # ---------------------------------------------------------------------------
+  # INFRAESTRUCTURA
+  # ---------------------------------------------------------------------------
   postgres:
     image: postgres:15-alpine
     container_name: ecommerce_postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER:-admin}
       POSTGRES_PASSWORD: ${DB_PASS:-Password123!}
@@ -31,8 +13,190 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # Agregamos el volumen para ejecutar el script de inicialización
-      - ./init-multiple-dbs.sql:/docker-entrypoint-initdb.d/init-multiple-dbs.sql
+      - ./init-multiple-dbs.sql:/docker-entrypoint-initdb.d/init-multiple-dbs.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-admin}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - ecommerce_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ecommerce_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      - ecommerce_network
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: ecommerce_rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - ecommerce_network
+
+  # ---------------------------------------------------------------------------
+  # MICROSERVICIOS .NET
+  # ---------------------------------------------------------------------------
+  api.auth:
+    build:
+      context: .
+      dockerfile: src/Services/Api.Auth/Api.Auth.WebAPI/Dockerfile
+    container_name: ecommerce_api_auth
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=auth_db;Username=${DB_USER:-admin};Password=${DB_PASS:-Password123!}
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: ${RABBITMQ_USER:-guest}
+      RabbitMQ__Password: ${RABBITMQ_PASS:-guest}
+      Jwt__Key: ${JWT_KEY:-ClaveGenericaDeDesarrolloLocalParaFirmarTokens12345!}
+      Jwt__Issuer: Api.Auth
+      Jwt__Audience: ECommerceClients
+      Jwt__ExpireMinutes: 60
+    ports:
+      - "5259:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - ecommerce_network
+
+  api.inventario:
+    build:
+      context: .
+      dockerfile: src/Services/Api.Inventario/Api.Inventario.WebAPI/Dockerfile
+    container_name: ecommerce_api_inventario
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=inventario_db;Username=${DB_USER:-admin};Password=${DB_PASS:-Password123!}
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: ${RABBITMQ_USER:-guest}
+      RabbitMQ__Password: ${RABBITMQ_PASS:-guest}
+      Jwt__Key: ${JWT_KEY:-ClaveGenericaDeDesarrolloLocalParaFirmarTokens12345!}
+      Jwt__Issuer: Api.Auth
+      Jwt__Audience: ECommerceClients
+      Jwt__ExpireMinutes: 60
+    ports:
+      - "5069:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - ecommerce_network
+
+  api.pedidos:
+    build:
+      context: .
+      dockerfile: src/Services/Api.Pedidos/Api.Pedidos.WebAPI/Dockerfile
+    container_name: ecommerce_api_pedidos
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=pedidos_db;Username=${DB_USER:-admin};Password=${DB_PASS:-Password123!}
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: ${RABBITMQ_USER:-guest}
+      RabbitMQ__Password: ${RABBITMQ_PASS:-guest}
+      Jwt__Key: ${JWT_KEY:-ClaveGenericaDeDesarrolloLocalParaFirmarTokens12345!}
+      Jwt__Issuer: Api.Auth
+      Jwt__Audience: ECommerceClients
+      Jwt__ExpireMinutes: 60
+    ports:
+      - "5141:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - ecommerce_network
+
+  api.notificaciones:
+    build:
+      context: .
+      dockerfile: src/Services/Api.Notificaciones/Dockerfile
+    container_name: ecommerce_api_notificaciones
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: ${RABBITMQ_USER:-guest}
+      RabbitMQ__Password: ${RABBITMQ_PASS:-guest}
+    ports:
+      - "5050:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - ecommerce_network
+
+  # ---------------------------------------------------------------------------
+  # API GATEWAY (YARP)
+  # ---------------------------------------------------------------------------
+  api.gateway:
+    build:
+      context: .
+      dockerfile: src/ApiGateways/Api.Gateway/Dockerfile
+    container_name: ecommerce_api_gateway
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__Redis: redis:6379
+      Jwt__Key: ${JWT_KEY:-ClaveGenericaDeDesarrolloLocalParaFirmarTokens12345!}
+      Jwt__Issuer: Api.Auth
+      Jwt__Audience: ECommerceClients
+      Jwt__ExpireMinutes: 60
+      ReverseProxy__Clusters__auth-cluster__Destinations__destination1__Address: http://api.auth:8080
+      ReverseProxy__Clusters__productos-cluster__Destinations__destination1__Address: http://api.inventario:8080
+      ReverseProxy__Clusters__pedidos-cluster__Destinations__destination1__Address: http://api.pedidos:8080
+    ports:
+      - "5000:8080"
+      - "5204:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+      api.auth:
+        condition: service_started
+      api.inventario:
+        condition: service_started
+      api.pedidos:
+        condition: service_started
     networks:
       - ecommerce_network
 
@@ -42,3 +206,5 @@ networks:
 
 volumes:
   postgres_data:
+  redis_data:
+  rabbitmq_data:
