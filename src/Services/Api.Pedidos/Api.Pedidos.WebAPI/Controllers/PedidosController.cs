@@ -1,11 +1,13 @@
-    using Api.Pedidos.Application.DTOs;
+using Api.Pedidos.Application.DTOs;
 using Api.Pedidos.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Pedidos.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class PedidosController : ControllerBase
 {
     private readonly IPedidoService _pedidoService;
@@ -20,6 +22,15 @@ public class PedidosController : ControllerBase
     {
         try
         {
+            if (dto.ClienteId == Guid.Empty)
+            {
+                var claimId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (Guid.TryParse(claimId, out var usuarioId))
+                {
+                    dto.ClienteId = usuarioId;
+                }
+            }
+
             var nuevoPedido = await _pedidoService.CrearPedidoAsync(dto);
             return Ok(nuevoPedido);
         }

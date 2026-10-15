@@ -42,13 +42,31 @@ builder.Services.AddMassTransit(x =>
     
     x.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host("localhost", "/", h =>
+        var configuration = context.GetRequiredService<IConfiguration>();
+        var host = configuration["RabbitMQ:Host"] ?? "localhost";
+        var username = configuration["RabbitMQ:Username"] ?? "guest";
+        var password = configuration["RabbitMQ:Password"] ?? "guest";
+
+        cfg.Host(host, "/", h =>
         {
-            h.Username("guest");
-            h.Password("guest");
+            h.Username(username);
+            h.Password(password);
         });
 
-        cfg.ConfigureEndpoints(context); 
+        cfg.ReceiveEndpoint("pedidos-stock-confirmado", e =>
+        {
+            e.ConfigureConsumer<StockConfirmadoConsumer>(context);
+        });
+
+        cfg.ReceiveEndpoint("pedidos-stock-rechazado", e =>
+        {
+            e.ConfigureConsumer<StockRechazadoConsumer>(context);
+        });
+
+        cfg.ReceiveEndpoint("pedidos-usuario-registrado", e =>
+        {
+            e.ConfigureConsumer<UsuarioRegistradoConsumer>(context);
+        });
     });
 });
 
@@ -86,6 +104,12 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<PedidosDbContext>();
+    context.Database.Migrate();
+}
+
 
 
 if (app.Environment.IsDevelopment())
@@ -94,9 +118,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseRateLimiter(); 
 
 app.MapControllers();
 

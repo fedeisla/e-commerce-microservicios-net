@@ -1,5 +1,6 @@
 using Api.Inventario.Application.DTOs.Categorias;
 using Api.Inventario.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Inventario.WebAPI.Controllers;
@@ -32,6 +33,7 @@ public class CategoriasController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Create([FromBody] CategoriaCreateDto dto)
     {
         var nuevaCategoria = await _categoriaService.CreateAsync(dto);

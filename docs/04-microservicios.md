@@ -172,5 +172,5 @@ Un servicio satélite de fondo (Worker) diseñado puramente para reaccionar a lo
 
 ---
 
-| <b><a href="./03-api-gateway.md">Anterior: API Gateway (YARP)</a></b> | <b><a href="./05-despliegue-e-infraestructura.md">Siguiente: Infraestructura y Despliegue</a></b> |
+| <b><a href="./03-componentes.md">Anterior: API Gateway (YARP)</a></b> | <b><a href="./05-despliegue-e-infraestructura.md">Siguiente: Infraestructura y Despliegue</a></b> |
 | :--- | ---: |
