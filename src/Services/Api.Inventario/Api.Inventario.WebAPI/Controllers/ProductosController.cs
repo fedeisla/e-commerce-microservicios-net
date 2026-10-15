@@ -1,6 +1,7 @@
 using Api.Inventario.Application.DTOs.Movimientos;
 using Api.Inventario.Application.DTOs.Productos;
 using Api.Inventario.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MassTransit; // <-- 1. Agregamos el using de MassTransit
 
@@ -38,6 +39,7 @@ public class ProductosController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Create([FromBody] ProductoCreateDto dto)
     {
         try
@@ -52,6 +54,7 @@ public class ProductosController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize]
     public async Task<IActionResult> Update(Guid id, [FromBody] ProductoUpdateDto dto)
     {
         try
@@ -72,6 +75,7 @@ public class ProductosController : ControllerBase
     }
 
     [HttpPost("movimientos")]
+    [Authorize]
     public async Task<IActionResult> RegistrarMovimiento([FromBody] RegistrarMovimientoDto dto)
     {
         try
