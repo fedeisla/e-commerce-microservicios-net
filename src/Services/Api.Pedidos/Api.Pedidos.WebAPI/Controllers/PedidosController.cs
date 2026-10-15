@@ -1,11 +1,13 @@
-    using Api.Pedidos.Application.DTOs;
+using Api.Pedidos.Application.DTOs;
 using Api.Pedidos.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Pedidos.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class PedidosController : ControllerBase
 {
     private readonly IPedidoService _pedidoService;
