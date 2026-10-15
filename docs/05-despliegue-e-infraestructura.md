@@ -3,64 +3,103 @@
 Aunque el ecosistema de microservicios actualmente se ejecuta en un entorno de desarrollo local, la arquitectura fue diseñada bajo los principios de **Aplicaciones Nativas de la Nube (Cloud-Native)** y la metodología **Twelve-Factor App**. Esto garantiza que el sistema sea fácilmente portable, escalable y preparado para un despliegue en entornos productivos.
 
 
-## 5.1 Infraestructura como Código (Docker Compose)
+## 5.1 Infraestructura como Código (Docker Compose Integral)
 
-Para garantizar la reproducibilidad del entorno y evitar el clásico problema de *"funciona en mi máquina"*, la capa de persistencia y mensajería se encuentra completamente contenerizada. 
+Para garantizar la reproducibilidad del entorno y evitar el clásico problema de *"funciona en mi máquina"*, **todo el ecosistema** (API Gateway, microservicios de negocio, worker de notificaciones, persistencia en PostgreSQL, caché en Redis y mensajería en RabbitMQ) se encuentra **completamente contenerizado**.
 
-Se utiliza un archivo de orquestación local que aprovisiona todos los servicios de infraestructura necesarios con un solo comando (`docker-compose up -d`), estableciendo redes aisladas y volúmenes persistentes.
+Con un único comando:
+```bash
+docker compose up -d --build
+```
+se aprovisiona la infraestructura, se construyen las imágenes multi-stage optimizadas, se ejecutan las migraciones de base de datos de manera automática al inicializar cada API y se levanta el sistema completo listo para operar.
 
-### Decisiones de Diseño en la Infraestructura Local:
-* **Aislamiento de Red:** Todos los servicios operan dentro de una red de tipo bridge (`ecommerce_network`), impidiendo el acceso externo no autorizado y permitiendo la resolución de nombres por DNS interno de Docker.
-* **Optimización de Imágenes:** Se prioriza el uso de distribuciones `alpine` (ej. `postgres:15-alpine`, `redis:7-alpine`) para reducir drásticamente la superficie de ataque y el peso de los contenedores.
-* **Bootstrapping de Bases de Datos:** Se utiliza un volumen que inyecta el script `init-multiple-dbs.sql` en el *entrypoint* de PostgreSQL. Esto permite que, al levantar el contenedor por primera vez, se aprovisionen automáticamente las bases de datos lógicas separadas (`auth_db`, `pedidos_db`, `inventario_db`), respetando el patrón *Database-per-Service* sin necesidad de intervención manual.
+### Decisiones de Diseño en la Infraestructura Contenerizada:
+* **Dockerfiles Multi-Stage:** Cada servicio cuenta con un Dockerfile en dos fases: compilación y restauración con SDK de .NET 10, y empaquetado final sobre la imagen ligera de runtime ASP.NET Core (`aspnet:10.0-preview`).
+* **Seguridad y Principio de Menor Privilegio:** Los contenedores se ejecutan bajo el usuario no privilegiado `app` (UID 1654), exponiendo internamente el puerto `8080` vía `ASPNETCORE_HTTP_PORTS=8080`.
+* **Aislamiento de Red:** Todos los servicios operan dentro de una red bridge (`ecommerce_network`), permitiendo la resolución de nombres por DNS interno de Docker (ej. `http://api.auth:8080`, `postgres:5432`, `rabbitmq:5672`).
+* **Healthchecks y Dependencias Estrictas:** PostgreSQL (`pg_isready`), Redis (`redis-cli ping`) y RabbitMQ (`rabbitmq-diagnostics -q ping`) poseen healthchecks nativos. Los microservicios declaran `depends_on` con `condition: service_healthy`, asegurando que ninguna API intente iniciar o migrar antes de que la infraestructura esté 100% operativa.
+* **Bootstrapping y Migraciones Automáticas:** El script `init-multiple-dbs.sql` crea automáticamente las bases de datos lógicas (`auth_db`, `inventario_db`, `pedidos_db`). Al iniciar, cada microservicio aplica automáticamente sus migraciones de Entity Framework Core (`Database.Migrate()`) en un scope de inicio.
 
 <details>
-<summary><b>Ver Archivo docker-compose.yml</b></summary>
+<summary><b>Ver Arquitectura docker-compose.yml Integral</b></summary>
 
 ```yaml
-version: '3.8'
-
 services:
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: ecommerce_rabbitmq
-    ports:
-      - "5672:5672" 
-      - "15672:15672" 
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
-    networks:
-      - ecommerce_network
+  postgres:
+    image: postgres:15-alpine
+    container_name: ecommerce_postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
     container_name: ecommerce_redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: ecommerce_rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  api.auth:
+    build:
+      context: .
+      dockerfile: src/Services/Api.Auth/Api.Auth.WebAPI/Dockerfile
+    container_name: ecommerce_api_auth
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+
+  api.inventario:
+    build:
+      context: .
+      dockerfile: src/Services/Api.Inventario/Api.Inventario.WebAPI/Dockerfile
+    container_name: ecommerce_api_inventario
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+
+  api.pedidos:
+    build:
+      context: .
+      dockerfile: src/Services/Api.Pedidos/Api.Pedidos.WebAPI/Dockerfile
+    container_name: ecommerce_api_pedidos
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+
+  api.notificaciones:
+    build:
+      context: .
+      dockerfile: src/Services/Api.Notificaciones/Dockerfile
+    container_name: ecommerce_api_notificaciones
+    depends_on:
+      rabbitmq: { condition: service_healthy }
+
+  api.gateway:
+    build:
+      context: .
+      dockerfile: src/ApiGateways/Api.Gateway/Dockerfile
+    container_name: ecommerce_api_gateway
     ports:
-      - "6379:6379"
-    networks:
-      - ecommerce_network
-
-  postgres:
-    image: postgres:15-alpine
-    container_name: ecommerce_postgres
-    environment:
-      POSTGRES_USER: ${DB_USER:-admin}
-      POSTGRES_PASSWORD: ${DB_PASS:-Password123!}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init-multiple-dbs.sql:/docker-entrypoint-initdb.d/init-multiple-dbs.sql
-    networks:
-      - ecommerce_network
-
-networks:
-  ecommerce_network:
-    driver: bridge
-
-volumes:
-  postgres_data:
+      - "5000:8080"
+      - "5204:8080"
+    depends_on:
+      redis: { condition: service_healthy }
+      api.auth: { condition: service_started }
+      api.inventario: { condition: service_started }
+      api.pedidos: { condition: service_started }
 ```
 </details>
 

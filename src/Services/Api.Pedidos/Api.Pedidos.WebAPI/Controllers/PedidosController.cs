@@ -22,6 +22,15 @@ public class PedidosController : ControllerBase
     {
         try
         {
+            if (dto.ClienteId == Guid.Empty)
+            {
+                var claimId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (Guid.TryParse(claimId, out var usuarioId))
+                {
+                    dto.ClienteId = usuarioId;
+                }
+            }
+
             var nuevoPedido = await _pedidoService.CrearPedidoAsync(dto);
             return Ok(nuevoPedido);
         }
